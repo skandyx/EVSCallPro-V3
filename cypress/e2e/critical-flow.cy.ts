@@ -1,7 +1,5 @@
-// FIX: The standard `types` reference was not resolving. Replaced with a direct
-// `path` reference to the Cypress type definitions as a workaround for potential
-// TypeScript configuration issues. This should resolve all "Cannot find name" errors.
-/// <reference path="../../node_modules/cypress/index.d.ts" />
+// FIX: Replaced the incorrect file path reference with the standard types reference to resolve Cypress type definition issues.
+/// <reference types="cypress" />
 
 // This triple-slash directive is necessary for TypeScript to recognize
 // Cypress's global commands like `cy`, `describe`, and `it`.
