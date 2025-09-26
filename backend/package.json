@@ -19,6 +19,7 @@
   "dependencies": {
     "asteriskagi": "^1.2.2",
     "asterisk-manager": "^0.1.16",
+    "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
