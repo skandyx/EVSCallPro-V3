@@ -1,0 +1,59 @@
+-- =============================================================================
+-- Fichier d'Initialisation (Seed) de la Base de Données EVSCallPro
+-- =============================================================================
+-- Ce script insère les données de base nécessaires pour démarrer et tester
+-- l'application, notamment les utilisateurs par défaut et les qualifications standards.
+--
+-- IMPORTANT : Exécutez ce script APRÈS avoir créé le schéma de base de données
+-- avec le fichier `database.txt`.
+-- =============================================================================
+
+-- Pour rendre ce script ré-exécutable, nous supprimons d'abord les données
+-- existantes dans les tables concernées, en respectant l'ordre des dépendances.
+DELETE FROM qualifications;
+DELETE FROM users;
+DELETE FROM sites;
+
+-- =============================================================================
+-- SECTION 1 : SITES
+-- Insertion des sites de démonstration.
+-- =============================================================================
+
+INSERT INTO sites (id, name) VALUES
+('site-paris', 'Siège de Paris'),
+('site-lyon', 'Agence de Lyon');
+
+-- =============================================================================
+-- SECTION 2 : UTILISATEURS
+-- Insertion des utilisateurs par défaut. Le mot de passe est stocké en clair
+-- dans la colonne `password_hash` pour la démonstration.
+-- Dans un environnement de production, il faudrait stocker un hash bcrypt.
+-- =============================================================================
+
+INSERT INTO users (id, login_id, first_name, last_name, email, "role", is_active, password_hash, site_id) VALUES
+('user-superadmin', '9999', 'Super', 'Admin', 'super.admin@example.com', 'SuperAdmin', true, '9999', 'site-paris'),
+('user-admin', '9000', 'Admin', 'Principal', 'admin.principal@example.com', 'Administrateur', true, '9000', 'site-paris'),
+('user-supervisor', '1000', 'Serge', 'Superviseur', 'serge.superviseur@example.com', 'Superviseur', true, '1000', 'site-paris'),
+('user-agent-1', '1001', 'Alice', 'Agent', 'alice.agent@example.com', 'Agent', true, '1001', 'site-paris'),
+('user-agent-2', '1002', 'Bob', 'Acteur', 'bob.acteur@example.com', 'Agent', true, 'password123', 'site-lyon'),
+('user-agent-3', '1003', 'Charlie', 'Conseiller', NULL, 'Agent', false, 'password123', 'site-lyon');
+
+-- =============================================================================
+-- SECTION 3 : QUALIFICATIONS STANDARDS
+-- Insertion des qualifications de base, non modifiables par l'utilisateur.
+-- Elles sont disponibles pour tous les groupes de qualifications.
+-- =============================================================================
+
+INSERT INTO qualifications (id, code, description, "type", is_standard) VALUES
+('std-90', '90', 'Occupé', 'neutral', true),
+('std-91', '91', 'Faux numéro', 'negative', true),
+('std-92', '92', 'Absent', 'neutral', true),
+('std-93', '93', 'Repondeur', 'neutral', true),
+('std-94', '94', 'Rappel personnel', 'neutral', true),
+('std-95', '95', 'Relance', 'neutral', true),
+('std-96', '96', 'Indisponible', 'neutral', true),
+('std-97', '97', 'Transfert', 'neutral', true);
+
+-- =============================================================================
+-- Fin du script d'initialisation.
+-- =============================================================================

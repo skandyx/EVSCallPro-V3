@@ -1,0 +1,98 @@
+#!/bin/bash
+# ==============================================================================
+# Script d'Application de la Configuration Asterisk pour EVSCallPro
+# ==============================================================================
+# CE SCRIPT DOIT ÊTRE EXÉCUTÉ AVEC LES PRIVILÈGES SUDO.
+#
+# Ce script automatise le déploiement de la configuration Asterisk nécessaire
+# pour l'application EVSCallPro. Il effectue les actions suivantes :
+#   1. Crée une sauvegarde horodatée de votre configuration Asterisk actuelle.
+#   2. Copie les fichiers de configuration du projet dans /etc/asterisk.
+#   3. Concatène les contextes de dialplan dans un fichier d'include.
+#   4. S'assure que les fichiers de configuration principaux incluent nos
+#      fichiers personnalisés.
+#   5. Recharge Asterisk pour appliquer les changements.
+#
+# USAGE: sudo ./scripts/apply-asterisk-config.sh
+# ==============================================================================
+
+set -e # Arrête le script si une commande échoue
+
+# --- Variables ---
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+ASTERISK_CONF_DIR="/etc/asterisk"
+PROJECT_CONF_DIR="$(pwd)/asterisk-configs"
+BACKUP_DIR="/var/backups/asterisk_config_$(date +%Y%m%d_%H%M%S)"
+
+# --- Fonctions ---
+info() {
+    echo -e "${YELLOW}INFO:${NC} $1"
+}
+
+success() {
+    echo -e "${GREEN}SUCCESS:${NC} $1"
+}
+
+# --- Vérification des privilèges ---
+if [ "$EUID" -ne 0 ]; then
+  info "Ce script doit être exécuté avec les privilèges root (sudo)."
+  exit 1
+fi
+
+# --- 1. Sauvegarde ---
+info "Création de la sauvegarde de la configuration Asterisk dans ${BACKUP_DIR}..."
+mkdir -p "$BACKUP_DIR"
+cp -r "$ASTERISK_CONF_DIR/"* "$BACKUP_DIR/"
+success "Sauvegarde terminée."
+
+# --- 2. Configuration du Dialplan (extensions) ---
+info "Configuration du dialplan (extensions)..."
+EXTENSIONS_CUSTOM_FILE="${ASTERISK_CONF_DIR}/extensions_custom.conf"
+info "Concaténation des contextes dans ${EXTENSIONS_CUSTOM_FILE}..."
+# Concatène les fichiers inbound et outbound dans un seul fichier custom
+cat "${PROJECT_CONF_DIR}/evscallpro-inbound.conf.txt" > "$EXTENSIONS_CUSTOM_FILE"
+echo "" >> "$EXTENSIONS_CUSTOM_FILE" # Ajoute une ligne vide pour la séparation
+cat "${PROJECT_CONF_DIR}/evscallpro-outbound.conf.txt" >> "$EXTENSIONS_CUSTOM_FILE"
+
+# Vérifie que extensions.conf inclut bien extensions_custom.conf
+if ! grep -q "#include extensions_custom.conf" "${ASTERISK_CONF_DIR}/extensions.conf"; then
+    info "Ajout de l'include pour extensions_custom.conf dans extensions.conf..."
+    echo -e "\n; Inclusion pour EVSCallPro\n#include extensions_custom.conf" >> "${ASTERISK_CONF_DIR}/extensions.conf"
+fi
+success "Dialplan configuré."
+
+# --- 3. Configuration des Trunks PJSIP ---
+info "Configuration des Trunks PJSIP..."
+PJSIP_CUSTOM_FILE="${ASTERISK_CONF_DIR}/pjsip_custom.conf"
+info "Copie de la configuration des trunks Yeastar dans ${PJSIP_CUSTOM_FILE}..."
+cp "${PROJECT_CONF_DIR}/yeastar-trunks.conf.txt" "$PJSIP_CUSTOM_FILE"
+
+# Vérifie que pjsip.conf inclut bien pjsip_custom.conf
+if ! grep -q "#include pjsip_custom.conf" "${ASTERISK_CONF_DIR}/pjsip.conf"; then
+    info "Ajout de l'include pour pjsip_custom.conf dans pjsip.conf..."
+    echo -e "\n; Inclusion pour les trunks EVSCallPro\n#include pjsip_custom.conf" >> "${ASTERISK_CONF_DIR}/pjsip.conf"
+fi
+success "Trunks PJSIP configurés."
+
+# --- 4. Configuration de l'AMI (Manager) ---
+info "Configuration de l'utilisateur AMI..."
+mkdir -p "${ASTERISK_CONF_DIR}/manager.d"
+cp "${PROJECT_CONF_DIR}/manager.d/evscallpro.conf.txt" "${ASTERISK_CONF_DIR}/manager.d/evscallpro.conf"
+success "Utilisateur AMI configuré."
+
+# --- 5. Configuration RTP ---
+info "Configuration des ports RTP..."
+cp "${PROJECT_CONF_DIR}/rtp.conf.txt" "${ASTERISK_CONF_DIR}/rtp.conf"
+success "Ports RTP configurés."
+
+# --- 6. Rechargement d'Asterisk ---
+info "Rechargement de la configuration Asterisk..."
+asterisk -rx "core reload"
+success "Asterisk a été rechargé."
+
+echo -e "\n${GREEN}=====================================================${NC}"
+echo -e "${GREEN}  Configuration d'Asterisk pour EVSCallPro appliquée !  ${NC}"
+echo -e "${GREEN}=====================================================${NC}"

@@ -1,0 +1,26 @@
+; ==============================================================================
+; Fichier de configuration des Trunks PJSIP vers les Yeastar de chaque site.
+; Ce fichier est géré dynamiquement par le script `addSiteTrunk.sh`.
+; Ne pas modifier manuellement.
+; ==============================================================================
+
+; Les configurations pour chaque site seront ajoutées ici par le script.
+; Exemple pour un site avec l'ID 1 et l'IP 10.1.0.254 (authentification par IP) :
+;
+; ; --- Trunk pour Site 1 ---
+; [trunk-site1]
+; type=endpoint
+; context=from-yeastar
+; disallow=all
+; allow=ulaw,alaw
+; aors=trunk-site1
+; identify_by=ip
+;
+; [trunk-site1]
+; type=aor
+; contact=sip:10.1.0.254:5060
+;
+; [trunk-site1]
+; type=identify
+; endpoint=trunk-site1
+; match=10.1.0.254

@@ -1,0 +1,15 @@
+; ==============================================================================
+; Fichier de configuration dédié pour l'utilisateur AMI de l'application.
+; Placer ce fichier dans /etc/asterisk/manager.d/ pour qu'il soit inclus.
+; ==============================================================================
+
+[ami_user]
+; Le nom d'utilisateur et le secret doivent correspondre aux variables d'environnement
+; du backend Node.js (AMI_USER et AMI_SECRET).
+secret = ami_password
+; Restreint l'accès à l'hôte local uniquement pour des raisons de sécurité.
+deny=0.0.0.0/0.0.0.0
+permit=127.0.0.1/255.255.255.255
+; Permissions complètes requises pour la supervision et le lancement d'appels.
+read = all
+write = all

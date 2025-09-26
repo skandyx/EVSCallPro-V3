@@ -1,0 +1,16 @@
+; ==============================================================================
+; Configuration des ports RTP pour le transport de l'audio.
+; ==============================================================================
+
+[general]
+; Plage de ports standard pour le trafic RTP.
+; Assurez-vous que ces ports sont ouverts entre le serveur Asterisk et les sites distants.
+rtpstart=10000
+rtpend=20000
+
+; Active le 'direct media' (RTP direct).
+; Si le VPN est performant, cela permet au flux audio de passer directement
+; entre le téléphone de l'agent sur le site et le Yeastar, sans transiter par Asterisk.
+; Cela réduit la charge sur le serveur central et la latence.
+; Si le VPN est instable, mettez cette option sur 'no'.
+directmedia=yes

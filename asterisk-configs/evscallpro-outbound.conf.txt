@@ -1,0 +1,51 @@
+; ==============================================================================
+; Contexte pour les appels sortants initiés par les agents EVSCallPro.
+; ==============================================================================
+
+[agent-out]
+; Contexte pour les appels depuis un softphone
+exten => _X.,1,NoOp(--- Appel sortant de l'agent ${CALLERID(num)} vers ${EXTEN} ---)
+    same => n,Set(SITE_ID=${DB(site/${CALLERID(num)})})
+    same => n,NoOp(Agent ${CALLERID(num)} est sur le site ${SITE_ID})
+    same => n,GotoIf($["${SITE_ID}" = ""]?no-site,1)
+    same => n,Set(TRUNK_TO_USE=PJSIP/trunk-site${SITE_ID})
+    same => n,NoOp(Utilisation du trunk: ${TRUNK_TO_USE})
+    same => n,Dial(${TRUNK_TO_USE}/${EXTEN})
+    same => n,Hangup()
+
+exten => no-site,1,NoOp(ERREUR: Aucun site trouvé pour l'agent ${CALLERID(num)}. Appel annulé.)
+    same => n,Hangup()
+
+; --- NOUVEAUX CONTEXTES POUR LE "CONNECT TO PHONE" ---
+
+[mobile-out]
+; Contexte pour appeler le mobile de l'agent.
+; L'extension est le numéro de mobile.
+exten => _X.,1,NoOp(--- Connect to Phone: Appel vers le mobile de l'agent ${EXTEN} ---)
+    ; Récupère le siteId passé en variable par l'action Originate
+    same => n,Set(SITE_ID=${SITE_ID_VAR})
+    same => n,GotoIf($["${SITE_ID}" = ""]?no-site,1)
+    same => n,Set(TRUNK_TO_USE=PJSIP/trunk-site${SITE_ID})
+    same => n,NoOp(Utilisation du trunk: ${TRUNK_TO_USE})
+    ; Appelle le mobile de l'agent
+    same => n,Dial(${TRUNK_TO_USE}/${EXTEN})
+    same => n,Hangup()
+
+[connect-to-phone]
+; Contexte exécuté une fois que l'agent a décroché son mobile.
+; L'extension est le numéro du client final.
+exten => _X.,1,NoOp(--- Connect to Phone: Agent a répondu, appel vers le client ${EXTEN} ---)
+    same => n,Answer()
+    ; Donne à l'agent un retour audio
+    same => n,Playback(beep)
+    ; Récupère les variables pour la deuxième partie de l'appel
+    same => n,Set(SITE_ID=${SITE_ID_VAR})
+    same => n,Set(FINAL_DESTINATION=${EXTEN})
+    same => n,Set(FINAL_CALLERID=${FINAL_CALLERID})
+    same => n,NoOp(Appel final vers ${FINAL_DESTINATION} via site ${SITE_ID} avec CallerID ${FINAL_CALLERID})
+    same => n,GotoIf($["${SITE_ID}" = ""]?no-site,1)
+    same => n,Set(TRUNK_TO_USE=PJSIP/trunk-site${SITE_ID})
+    same => n,Set(CALLERID(num)=${FINAL_CALLERID})
+    ; Lance l'appel final vers le client
+    same => n,Dial(${TRUNK_TO_USE}/${FINAL_DESTINATION})
+    same => n,Hangup()

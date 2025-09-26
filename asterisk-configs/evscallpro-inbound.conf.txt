@@ -1,0 +1,14 @@
+; ==============================================================================
+; Contexte pour les appels entrants depuis les Trunks Yeastar.
+; ==============================================================================
+
+[from-yeastar]
+; Tous les appels entrants depuis les trunks PJSIP configurés dans
+; yeastar-trunks.conf arriveront dans ce contexte.
+
+; _X. correspond à n'importe quel numéro appelé (DID/SDA).
+exten => _X.,1,NoOp(--- Appel entrant depuis un Yeastar vers le numéro ${EXTEN} ---)
+    ; Transfère immédiatement le contrôle de l'appel au script AGI du backend.
+    ; Le backend se chargera de la logique du SVI (jouer des messages, menus, etc.).
+    same => n,AGI(agi://127.0.0.1:4573)
+    same => n,Hangup()

@@ -1,0 +1,31 @@
+server {
+    listen 80;
+    server_name callpro.alex-com.tn;
+
+    # --- Partie Frontend React ---
+    # Racine des fichiers de l'interface utilisateur
+    root /home/debian/EVSCallPro/dist;
+    index index.html;
+
+    # Règle essentielle pour les applications React (Single Page Application)
+    location / {
+        try_files $uri /index.html;
+    }
+
+    # --- Partie API Backend (C'EST LA PARTIE MANQUANTE) ---
+    # Toutes les requêtes commençant par /api/ sont redirigées
+    # vers le serveur backend Node.js qui écoute sur le port 3001.
+    location /api/ {
+        proxy_pass http://127.0.0.1:3001; # Assurez-vous que votre backend tourne bien sur le port 3001
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    # Fichiers de log pour le débogage
+    access_log /var/log/nginx/callpro.access.log;
+    error_log /var/log/nginx/callpro.error.log;
+}
