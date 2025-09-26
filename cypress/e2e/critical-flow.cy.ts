@@ -1,4 +1,5 @@
-/// <reference types="cypress" />
+// FIX: Changed from `types` to a direct `path` reference to ensure TypeScript can locate the Cypress type definitions when the tsconfig is misconfigured.
+/// <reference path="../../node_modules/cypress/types/index.d.ts" />
 
 // This triple-slash directive is necessary for TypeScript to recognize
 // Cypress's global commands like `cy`, `describe`, and `it`.
