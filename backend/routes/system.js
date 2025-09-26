@@ -81,7 +81,9 @@ router.get('/db-schema', isSuperAdmin, async (req, res) => {
             if (!acc[table_name]) {
                 acc[table_name] = [];
             }
+            
             acc[table_name].push(`${column_name} (${data_type})`);
+
             return acc;
         }, {});
         res.json(schema);
