@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Feature, User, UserRole, Campaign, UserGroup, Site } from '../types.ts';
-import { UsersIcon, PlusIcon, EditIcon, TrashIcon } from './Icons.tsx';
+import { UsersIcon, PlusIcon, EditIcon, TrashIcon, ChevronDownIcon } from './Icons.tsx';
 import ImportUsersModal from './ImportUsersModal.tsx';
 
 const generatePassword = (): string => {
@@ -336,6 +336,9 @@ const UserManager: React.FC<UserManagerProps> = ({ feature, users, campaigns, us
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isGeneratingModalOpen, setIsGeneratingModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ key: keyof User; direction: 'ascending' | 'descending' }>({ key: 'firstName', direction: 'ascending' });
+
 
   const usersToDisplay = useMemo(() => {
     if (currentUser.role === 'SuperAdmin') {
@@ -343,6 +346,59 @@ const UserManager: React.FC<UserManagerProps> = ({ feature, users, campaigns, us
     }
     return users.filter(user => user.role !== 'SuperAdmin');
   }, [users, currentUser]);
+  
+  const filteredAndSortedUsers = useMemo(() => {
+    let sortableUsers = [...usersToDisplay];
+
+    if (searchTerm) {
+        sortableUsers = sortableUsers.filter(user => {
+            const term = searchTerm.toLowerCase();
+            return (
+                user.firstName.toLowerCase().includes(term) ||
+                user.lastName.toLowerCase().includes(term) ||
+                (user.email && user.email.toLowerCase().includes(term)) ||
+                user.loginId.toLowerCase().includes(term) ||
+                user.role.toLowerCase().includes(term)
+            );
+        });
+    }
+
+    sortableUsers.sort((a, b) => {
+        const key = sortConfig.key;
+        if (a[key] === null || a[key] === undefined) return 1;
+        if (b[key] === null || b[key] === undefined) return -1;
+        
+        let aValue = a[key];
+        let bValue = b[key];
+
+        if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
+            if (aValue === bValue) return 0;
+            if (sortConfig.direction === 'ascending') return aValue ? -1 : 1;
+            return aValue ? 1 : -1;
+        }
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+            return aValue.localeCompare(bValue, undefined, { numeric: true }) * (sortConfig.direction === 'ascending' ? 1 : -1);
+        }
+        
+        if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
+        
+        return 0;
+    });
+
+    return sortableUsers;
+  }, [usersToDisplay, searchTerm, sortConfig]);
+
+
+  const requestSort = (key: keyof User) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+        direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+
 
   const handleAddNew = () => {
     setEditingUser({
@@ -428,8 +484,23 @@ const UserManager: React.FC<UserManagerProps> = ({ feature, users, campaigns, us
     return { canDelete: true, tooltip: "Supprimer l'utilisateur" };
   };
 
+  const SortableHeader: React.FC<{ sortKey: keyof User; label: string }> = ({ sortKey, label }) => (
+    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+        <button onClick={() => requestSort(sortKey)} className="group inline-flex items-center gap-1">
+            {label}
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                {sortConfig.key === sortKey
+                    ? <ChevronDownIcon className={`w-4 h-4 transition-transform ${sortConfig.direction === 'ascending' ? 'rotate-180' : ''}`} />
+                    : <ChevronDownIcon className="w-4 h-4 text-slate-400" />
+                }
+            </span>
+        </button>
+    </th>
+  );
+
+
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8">
       {isModalOpen && editingUser && <UserModal user={editingUser} users={users} campaigns={campaigns} userGroups={userGroups} sites={sites} currentUser={currentUser} onSave={handleSave} onClose={() => setIsModalOpen(false)} />}
       {isImportModalOpen && <ImportUsersModal onClose={() => setIsImportModalOpen(false)} onImport={onImportUsers} existingUsers={users} />}
       {isGeneratingModalOpen && <GenerateModal onClose={() => setIsGeneratingModalOpen(false)} onConfirm={handleConfirmGeneration} />}
@@ -450,21 +521,31 @@ const UserManager: React.FC<UserManagerProps> = ({ feature, users, campaigns, us
             </button>
           </div>
         </div>
+        
+        <div className="mb-4">
+            <input
+                type="text"
+                placeholder="Rechercher par nom, identifiant, email, rôle..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full max-w-lg p-2 border border-slate-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            />
+        </div>
 
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nom</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">ID</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Identifiant / Ext.</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Rôle</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Statut</th>
+                <SortableHeader sortKey="firstName" label="Nom" />
+                <SortableHeader sortKey="id" label="ID" />
+                <SortableHeader sortKey="loginId" label="Identifiant / Ext." />
+                <SortableHeader sortKey="role" label="Rôle" />
+                <SortableHeader sortKey="isActive" label="Statut" />
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
-              {usersToDisplay.map(user => {
+              {filteredAndSortedUsers.map(user => {
                 const { canDelete, tooltip } = getDeletionState(user);
                 return (
                   <tr key={user.id}>

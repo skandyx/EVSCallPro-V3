@@ -511,6 +511,36 @@ export const features: Feature[] = [
         }
     },
     {
+        id: 'module-settings',
+        title: 'Gestion des Modules',
+        category: 'Paramètres',
+        description: 'Activez ou désactivez les menus pour les rôles Administrateur et Superviseur.',
+        component: ModuleSettingsManager,
+        userJourney: {
+            title: 'Parcours: Masquer la gestion audio',
+            steps: [
+                "Le SuperAdmin se rend dans 'Paramètres' > 'Gestion des Modules'.",
+                "Il localise la catégorie 'Sound' ou le sous-menu 'Bibliothèque Média'.",
+                "Il désactive l'interrupteur correspondant.",
+                "Il enregistre les modifications.",
+                "Les utilisateurs avec le rôle 'Administrateur' ne verront plus ce menu."
+            ],
+        },
+        specs: {
+            title: 'Spécifications Techniques',
+            points: [
+                "L'accès à cette page est strictement réservé aux utilisateurs avec le rôle 'SuperAdmin'.",
+                "Les modifications de visibilité n'affectent pas les SuperAdmins.",
+                "La désactivation d'une catégorie masque tous ses sous-menus.",
+                "Les paramètres sont sauvegardés et appliqués à toutes les futures sessions des utilisateurs concernés."
+            ],
+        },
+        simplificationTip: {
+            title: 'Conseil de Simplification',
+            content: "Pour un nouveau client, commencez par masquer tous les modules non essentiels pour simplifier la prise en main. Vous pourrez les réactiver progressivement en fonction de ses besoins."
+        }
+    },
+    {
         id: 'database-client',
         title: 'Base de Données',
         category: 'Paramètres',

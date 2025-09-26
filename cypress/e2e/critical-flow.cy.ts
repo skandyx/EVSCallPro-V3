@@ -1,7 +1,6 @@
-// FIX: Reverted the Cypress type reference from a direct `path` to the standard `types` attribute.
-// The `path` reference was failing to resolve correctly. Using `types="cypress"` is the canonical
-// and more robust way to include Cypress type definitions, which should resolve all the
-// 'Cannot find name' errors for `cy`, `describe`, and `it`.
+// FIX: Switched from a direct path reference to the standard `types` reference for Cypress.
+// The path reference was failing to resolve, causing all Cypress global types (`cy`, `describe`, `it`)
+// to be unrecognized by TypeScript. The `types` reference is the correct and more robust method.
 /// <reference types="cypress" />
 
 // This triple-slash directive is necessary for TypeScript to recognize
