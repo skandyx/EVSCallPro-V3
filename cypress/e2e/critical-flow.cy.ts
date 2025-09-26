@@ -1,6 +1,7 @@
-// FIX: Add a triple-slash directive to include Cypress type definitions.
-// This is necessary for TypeScript to recognize Cypress's global commands like `cy`, `describe`, and `it`.
 /// <reference types="cypress" />
+
+// This triple-slash directive is necessary for TypeScript to recognize
+// Cypress's global commands like `cy`, `describe`, and `it`.
 
 describe('Critical Application Flow', () => {
   it('should load the login page, log in as an admin, and see the dashboard', () => {

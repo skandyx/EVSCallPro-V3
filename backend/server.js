@@ -108,28 +108,44 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 
 // --- API ROUTES ---
+
+// Import all route handlers at the top for clarity and faster failure detection.
+const authRoutes = require(path.join(__dirname, 'routes', 'auth.js'));
+const callRoutes = require(path.join(__dirname, 'routes', 'call.js'));
+const usersRoutes = require(path.join(__dirname, 'routes', 'users.js'));
+const groupsRoutes = require(path.join(__dirname, 'routes', 'groups.js'));
+const campaignsRoutes = require(path.join(__dirname, 'routes', 'campaigns.js'));
+const scriptsRoutes = require(path.join(__dirname, 'routes', 'scripts.js'));
+const qualificationsRoutes = require(path.join(__dirname, 'routes', 'qualifications.js'));
+const ivrRoutes = require(path.join(__dirname, 'routes', 'ivr.js'));
+const telephonyRoutes = require(path.join(__dirname, 'routes', 'telephony.js'));
+const sitesRoutes = require(path.join(__dirname, 'routes', 'sites.js'));
+const planningRoutes = require(path.join(__dirname, 'routes', 'planning.js'));
+const contactsRoutes = require(path.join(__dirname, 'routes', 'contacts.js'));
+const systemRoutes = require(path.join(__dirname, 'routes', 'system.js'));
+const audioRoutes = require(path.join(__dirname, 'routes', 'audio.js'));
+
 // Public route
-app.use('/api/auth', require(path.join(__dirname, 'routes', 'auth.js')));
+app.use('/api/auth', authRoutes);
 
 // Protected routes
 app.use(authMiddleware); // All routes below this are now protected
 
-app.use('/api/call', require(path.join(__dirname, 'routes', 'call.js')));
-app.use('/api/users', require(path.join(__dirname, 'routes', 'users.js')));
-app.use('/api/user-groups', require(path.join(__dirname, 'routes', 'groups.js')));
-app.use('/api/campaigns', require(path.join(__dirname, 'routes', 'campaigns.js')));
-app.use('/api/scripts', require(path.join(__dirname, 'routes', 'scripts.js')));
-app.use('/api/qualifications', require(path.join(__dirname, 'routes', 'qualifications.js')));
-app.use('/api/qualification-groups', require(path.join(__dirname, 'routes', 'qualifications.js')));
-app.use('/api/ivr-flows', require(path.join(__dirname, 'routes', 'ivr.js')));
-app.use('/api/trunks', require(path.join(__dirname, 'routes', 'telephony.js')));
-app.use('/api/dids', require(path.join(__dirname, 'routes', 'telephony.js')));
-app.use('/api/sites', require(path.join(__dirname, 'routes', 'sites.js')));
-app.use('/api/planning-events', require(path.join(__dirname, 'routes', 'planning.js')));
-app.use('/api/contacts', require(path.join(__dirname, 'routes', 'contacts.js')));
-// Add new routes
-app.use('/api/system', require(path.join(__dirname, 'routes', 'system.js')));
-app.use('/api/audio-files', require(path.join(__dirname, 'routes', 'audio.js')));
+app.use('/api/call', callRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/user-groups', groupsRoutes);
+app.use('/api/campaigns', campaignsRoutes);
+app.use('/api/scripts', scriptsRoutes);
+app.use('/api/qualifications', qualificationsRoutes);
+app.use('/api/qualification-groups', qualificationsRoutes); // Re-using the same router is intended
+app.use('/api/ivr-flows', ivrRoutes);
+app.use('/api/trunks', telephonyRoutes);
+app.use('/api/dids', telephonyRoutes); // Re-using the same router is intended
+app.use('/api/sites', sitesRoutes);
+app.use('/api/planning-events', planningRoutes);
+app.use('/api/contacts', contactsRoutes);
+app.use('/api/system', systemRoutes);
+app.use('/api/audio-files', audioRoutes);
 
 
 // --- SPECIAL SYSTEM ROUTES ---
