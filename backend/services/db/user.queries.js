@@ -1,9 +1,6 @@
 
 const pool = require('./connection');
-const bcrypt = require('bcrypt');
 const { keysToCamel } = require('./utils');
-
-const SALT_ROUNDS = 10;
 
 // Define safe columns to be returned, excluding sensitive ones like password_hash
 const SAFE_USER_COLUMNS = 'u.id, u.login_id, u.extension, u.first_name, u.last_name, u.email, u."role", u.is_active, u.site_id, u.created_at, u.updated_at, u.mobile_number, u.use_mobile_as_station';
@@ -53,9 +50,6 @@ const createUser = async (userData) => {
     try {
         await client.query('BEGIN');
         
-        // Hacher le mot de passe avant de l'insérer
-        const passwordHash = await bcrypt.hash(user.password, SALT_ROUNDS);
-
         // FIX: Use a distinct placeholder for each column to avoid type deduction errors.
         // The number of placeholders now matches the number of columns (12) and parameters.
         const userQuery = `
@@ -66,7 +60,7 @@ const createUser = async (userData) => {
         const userRes = await client.query(userQuery, [
             user.id, user.loginId, user.loginId, // Pass loginId twice for both login_id and extension
             user.firstName, user.lastName, user.email || null,
-            user.role, user.isActive, passwordHash, user.siteId || null, 
+            user.role, user.isActive, user.password, user.siteId || null, 
             user.mobileNumber || null, user.useMobileAsStation || false
         ]);
 
@@ -123,9 +117,8 @@ const updateUser = async (userId, userData) => {
         
         let passwordUpdateClause = '';
         if (hasPassword) {
-            const passwordHash = await bcrypt.hash(user.password, SALT_ROUNDS);
             passwordUpdateClause = `, password_hash = $11`;
-            queryParams.push(passwordHash);
+            queryParams.push(user.password);
         }
         
         queryParams.push(userId);
@@ -190,7 +183,6 @@ const createUsersBulk = async (users) => {
         await client.query('BEGIN');
         const createdUsers = [];
         for (const user of users) {
-             const passwordHash = await bcrypt.hash(user.password || generatePassword(), SALT_ROUNDS);
              // FIX: Use a distinct placeholder for each column to avoid type deduction errors.
             const userQuery = `
                 INSERT INTO users (id, login_id, extension, first_name, last_name, email, "role", is_active, password_hash, site_id, mobile_number, use_mobile_as_station)
@@ -206,7 +198,7 @@ const createUsersBulk = async (users) => {
                 user.email || null,
                 user.role || 'Agent',
                 'isActive' in user ? user.isActive : true,
-                passwordHash,
+                user.password || generatePassword(), // ROBUSTNESS: Ensure password is not null
                 user.siteId || null,
                 user.mobileNumber || null,
                 'useMobileAsStation' in user ? user.useMobileAsStation : false

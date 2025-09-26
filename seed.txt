@@ -25,23 +25,18 @@ INSERT INTO sites (id, name) VALUES
 
 -- =============================================================================
 -- SECTION 2 : UTILISATEURS
--- Insertion des utilisateurs par défaut. Le mot de passe est désormais stocké
--- sous forme de hash bcrypt sécurisé. Les mots de passe en clair sont indiqués en commentaire.
+-- Insertion des utilisateurs par défaut. Le mot de passe est stocké en clair
+-- dans la colonne `password_hash` pour la démonstration.
+-- Dans un environnement de production, il faudrait stocker un hash bcrypt.
 -- =============================================================================
 
 INSERT INTO users (id, login_id, extension, first_name, last_name, email, "role", is_active, password_hash, site_id) VALUES
--- Pass: 9999
-('user-superadmin', '9999', '9999', 'Super', 'Admin', 'super.admin@example.com', 'SuperAdmin', true, '$2b$10$tZ9w.f5wE.1/lG2f1gH5neEcY.o.L1yH6q.S5.B6x5aY5J6c.z9aG', 'site-paris'),
--- Pass: 9000
-('user-admin', '9000', '9000', 'Admin', 'Principal', 'admin.principal@example.com', 'Administrateur', true, '$2b$10$3s.zP.d9f8A.L2e.s5G5g.o2t/lG5g.f5wE.1/lG2f1gH5neE', 'site-paris'),
--- Pass: 1000
-('user-supervisor', '1000', '1000', 'Serge', 'Superviseur', 'serge.superviseur@example.com', 'Superviseur', true, '$2b$10$w.f5wE.1/lG2f1gH5neEcY.o.L1yH6q.S5.B6x5aY5J6c.z9aG', 'site-paris'),
--- Pass: 1001
-('user-agent-1', '1001', '1001', 'Alice', 'Agent', 'alice.agent@example.com', 'Agent', true, '$2b$10$L2e.s5G5g.o2t/lG5g.f5wE.1/lG2f1gH5neEcY.o.L1yH6', 'site-paris'),
--- Pass: password123
-('user-agent-2', '1002', '1002', 'Bob', 'Acteur', 'bob.acteur@example.com', 'Agent', true, '$2b$10$q.S5.B6x5aY5J6c.z9aG.w.f5wE.1/lG2f1gH5neEcY.o.L', 'site-lyon'),
--- Pass: password123
-('user-agent-3', '1003', '1003', 'Charlie', 'Conseiller', NULL, 'Agent', false, '$2b$10$q.S5.B6x5aY5J6c.z9aG.w.f5wE.1/lG2f1gH5neEcY.o.L', 'site-lyon');
+('user-superadmin', '9999', '9999', 'Super', 'Admin', 'super.admin@example.com', 'SuperAdmin', true, '9999', 'site-paris'),
+('user-admin', '9000', '9000', 'Admin', 'Principal', 'admin.principal@example.com', 'Administrateur', true, '9000', 'site-paris'),
+('user-supervisor', '1000', '1000', 'Serge', 'Superviseur', 'serge.superviseur@example.com', 'Superviseur', true, '1000', 'site-paris'),
+('user-agent-1', '1001', '1001', 'Alice', 'Agent', 'alice.agent@example.com', 'Agent', true, '1001', 'site-paris'),
+('user-agent-2', '1002', '1002', 'Bob', 'Acteur', 'bob.acteur@example.com', 'Agent', true, 'password123', 'site-lyon'),
+('user-agent-3', '1003', '1003', 'Charlie', 'Conseiller', NULL, 'Agent', false, 'password123', 'site-lyon');
 
 -- =============================================================================
 -- SECTION 3 : QUALIFICATIONS STANDARDS
