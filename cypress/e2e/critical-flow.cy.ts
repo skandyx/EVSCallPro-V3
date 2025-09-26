@@ -1,10 +1,5 @@
-// FIX: Switched from a direct path reference to the standard `types` reference for Cypress.
-// The path reference was failing to resolve, causing all Cypress global types (`cy`, `describe`, `it`)
-// to be unrecognized by TypeScript. The `types` reference is the correct and more robust method.
 /// <reference types="cypress" />
-
-// This triple-slash directive is necessary for TypeScript to recognize
-// Cypress's global commands like `cy`, `describe`, and `it`.
+// FIX: Added the triple-slash reference directive for Cypress to resolve issues with global type definitions for commands like `cy`, `describe`, and `it`.
 
 describe('Critical Application Flow', () => {
   it('should load the login page, log in as an admin, and see the dashboard', () => {

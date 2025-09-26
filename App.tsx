@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import type { Feature, User, FeatureId, ModuleVisibility, SavedScript, Campaign, Contact, UserGroup, Site, Qualification, QualificationGroup, IvrFlow, AudioFile, Trunk, Did, BackupLog, BackupSchedule, AgentSession, CallHistoryRecord, SystemLog, VersionInfo, ConnectivityService, ActivityType, PlanningEvent, SystemConnectionSettings, ContactNote, PersonalCallback } from './types.ts';
 import { features } from './data/features.ts';
@@ -125,6 +126,15 @@ const App: React.FC = () => {
         }
     };
 
+    const handleSaveVisibilitySettings = (visibility: ModuleVisibility) => {
+        // As there's no backend endpoint, this is a client-side state update for the current session.
+        setAllData(prevData => ({
+            ...prevData,
+            moduleVisibility: visibility,
+        }));
+        showAlert('Paramètres de visibilité mis à jour.', 'success');
+    };
+
     const handleSaveUser = async (user: User, groupIds: string[]) => {
        await handleSaveOrUpdate('users', { ...user, groupIds });
     };
@@ -183,6 +193,7 @@ const App: React.FC = () => {
 
         const componentProps = {
             ...allData,
+            features: features, // Pass the main features array to all components
             feature: activeFeature,
             currentUser,
             onSaveUser: handleSaveUser,
@@ -214,6 +225,7 @@ const App: React.FC = () => {
             onDeleteSite: (id: string) => handleDelete('sites', id),
             onSavePlanningEvent: (event: PlanningEvent) => handleSaveOrUpdate('planning-events', event),
             onDeletePlanningEvent: (id: string) => handleDelete('planning-events', id),
+            onSaveVisibilitySettings: handleSaveVisibilitySettings,
             apiCall: apiClient, // Passe l'instance axios configurée
         };
         

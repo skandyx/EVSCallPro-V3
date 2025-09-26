@@ -10,6 +10,8 @@
 
 -- Pour rendre ce script ré-exécutable, nous supprimons d'abord les données
 -- existantes dans les tables concernées, en respectant l'ordre des dépendances.
+DELETE FROM planning_events;
+DELETE FROM activity_types;
 DELETE FROM qualifications;
 DELETE FROM users;
 DELETE FROM sites;
@@ -53,6 +55,17 @@ INSERT INTO qualifications (id, code, description, "type", is_standard) VALUES
 ('std-95', '95', 'Relance', 'neutral', true),
 ('std-96', '96', 'Indisponible', 'neutral', true),
 ('std-97', '97', 'Transfert', 'neutral', true);
+
+-- =============================================================================
+-- SECTION 4 : TYPES D'ACTIVITÉS POUR LE PLANNING
+-- Insertion des activités par défaut pour le module de planning.
+-- =============================================================================
+
+INSERT INTO activity_types (id, name, color) VALUES
+('activity-outbound', 'Appel Sortant', '#3b82f6'), -- blue-500
+('activity-lunch', 'Pause Déjeuner', '#64748b'), -- slate-500
+('activity-meeting', 'Réunion', '#8b5cf6'), -- violet-500
+('activity-training', 'Formation', '#f59e0b'); -- amber-500
 
 -- =============================================================================
 -- Fin du script d'initialisation.

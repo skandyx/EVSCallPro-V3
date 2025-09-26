@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { Feature, User, UserGroup } from '../types.ts';
-import { PlusIcon, EditIcon, TrashIcon } from './Icons.tsx';
+import { PlusIcon, EditIcon, TrashIcon, ChevronDownIcon } from './Icons.tsx';
 
 // Modal component for creating/editing a group
 interface GroupModalProps {
@@ -92,9 +92,55 @@ interface GroupManagerProps {
     onDeleteUserGroup: (groupId: string) => void;
 }
 
+type SortableKeys = keyof UserGroup | 'memberCount';
+
 const GroupManager: React.FC<GroupManagerProps> = ({ feature, users, userGroups, onSaveUserGroup, onDeleteUserGroup }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingGroup, setEditingGroup] = useState<UserGroup | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortConfig, setSortConfig] = useState<{ key: SortableKeys; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' });
+
+    const filteredAndSortedGroups = useMemo(() => {
+        let sortableGroups = [...userGroups];
+
+        if (searchTerm) {
+            sortableGroups = sortableGroups.filter(group =>
+                group.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        sortableGroups.sort((a, b) => {
+            const key = sortConfig.key;
+            let aValue, bValue;
+
+            if (key === 'memberCount') {
+                aValue = a.memberIds.length;
+                bValue = b.memberIds.length;
+            } else {
+                aValue = a[key as keyof UserGroup];
+                bValue = b[key as keyof UserGroup];
+            }
+
+            if (typeof aValue === 'string' && typeof bValue === 'string') {
+                 return aValue.localeCompare(bValue, undefined, { numeric: true }) * (sortConfig.direction === 'ascending' ? 1 : -1);
+            }
+            
+            if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
+            if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
+            
+            return 0;
+        });
+
+        return sortableGroups;
+    }, [userGroups, searchTerm, sortConfig]);
+
+    const requestSort = (key: SortableKeys) => {
+        let direction: 'ascending' | 'descending' = 'ascending';
+        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
 
     const handleAddNew = () => {
         setEditingGroup(null);
@@ -111,9 +157,23 @@ const GroupManager: React.FC<GroupManagerProps> = ({ feature, users, userGroups,
         setIsModalOpen(false);
         setEditingGroup(null);
     };
+    
+    const SortableHeader: React.FC<{ sortKey: SortableKeys; label: string }> = ({ sortKey, label }) => (
+        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+            <button onClick={() => requestSort(sortKey)} className="group inline-flex items-center gap-1">
+                {label}
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    {sortConfig.key === sortKey
+                        ? <ChevronDownIcon className={`w-4 h-4 transition-transform ${sortConfig.direction === 'ascending' ? 'rotate-180' : ''}`} />
+                        : <ChevronDownIcon className="w-4 h-4 text-slate-400" />
+                    }
+                </span>
+            </button>
+        </th>
+    );
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8">
+        <div className="max-w-7xl mx-auto space-y-8">
             {isModalOpen && <GroupModal group={editingGroup} users={users} onSave={handleSave} onClose={() => setIsModalOpen(false)} />}
             <header>
                 <h1 className="text-4xl font-bold text-slate-900 tracking-tight">{feature.title}</h1>
@@ -129,17 +189,27 @@ const GroupManager: React.FC<GroupManagerProps> = ({ feature, users, userGroups,
                     </button>
                 </div>
 
+                <div className="mb-4">
+                    <input
+                        type="text"
+                        placeholder="Rechercher par nom de groupe..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full max-w-lg p-2 border border-slate-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                </div>
+
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-slate-200">
                         <thead className="bg-slate-50">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Nom du Groupe</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Nombre de Membres</th>
+                                <SortableHeader sortKey="name" label="Nom du Groupe" />
+                                <SortableHeader sortKey="memberCount" label="Nombre de Membres" />
                                 <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-slate-200">
-                            {userGroups.map(group => (
+                            {filteredAndSortedGroups.map(group => (
                                 <tr key={group.id}>
                                     <td className="px-6 py-4 font-medium text-slate-800">{group.name}</td>
                                     <td className="px-6 py-4 text-slate-600">{group.memberIds.length}</td>
